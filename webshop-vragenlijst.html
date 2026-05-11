@@ -852,10 +852,44 @@
     return { naam, automations, uren: urenNum, besparing, score, succes };
   }
 
-  document.getElementById('scan-form').addEventListener('submit', function(e) {
+  async function stuurNaarSheets(data) {
+    try {
+      await fetch('https://api.sheetbest.com/sheets/35c7f7a2-a10d-4182-a359-8f915ccb811b', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+    } catch(err) {
+      console.log('Sheet sync mislukt:', err);
+    }
+  }
+
+  document.getElementById('scan-form').addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const { naam, automations, uren, besparing, score, succes } = buildAnalyse();
+
+    // Stuur data naar Google Sheets
+    const nu = new Date();
+    const datum = nu.toLocaleDateString('nl-NL') + ' ' + nu.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'});
+    await stuurNaarSheets({
+      datum,
+      shop_naam: getVal('shop_naam'),
+      platform: getVal('platform'),
+      orders_pm: getVal('orders_pm'),
+      team_size: getVal('team_size'),
+      ads: getChecked('ads').join(', '),
+      boekhouding: getVal('boekhouding'),
+      analytics: getVal('analytics'),
+      email_tool: getVal('email_tool'),
+      pijnpunten: getChecked('pijn').join(', '),
+      uren_pw: getVal('uren_pw') || '8',
+      inzicht_mis: getVal('inzicht_mis'),
+      doel: getVal('doel'),
+      tech: getVal('tech'),
+      succes_def: getVal('succes_def'),
+      email: getVal('email')
+    });
 
     let html = `
       <div class="result-section">
